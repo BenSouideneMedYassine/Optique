@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Lunette{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+        <h1 class="text-center mb-5">Edit Lunette</h1>
+
+        {{ include('lunette/_form.html.twig', {'button_label': 'Update'}) }}
+<br>
+ {{ include('lunette/_delete_form.html.twig') }}
+ <br>
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ path('app_lunette_index') }}" class="btn btn-outline-primary btn-primary">Back to list</a>
+        </div>
+       
+    </div>
+            
+
+{% endblock %}
+
+
