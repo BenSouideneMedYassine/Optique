@@ -7,12 +7,14 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: symfony-php
     volumes:
-      - .:/var/www/symfony
+      - .:/var/www/symfony:cached
+      - ./public/uploads/images:/var/www/symfony/public/uploads/images
     working_dir: /var/www/symfony
     ports:
       - 9000:9000
     depends_on:
       - db
+      - mailer
 
   nginx:
     image: nginx:latest
@@ -20,7 +22,7 @@ services:
     ports:
       - 8080:80
     volumes:
-      - .:/var/www/symfony
+      - .:/var/www/symfony:cached
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - php
@@ -30,13 +32,41 @@ services:
     container_name: symfony-db
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: symfony
-      MYSQL_USER: symfony
-      MYSQL_PASSWORD: symfony
+      MYSQL_DATABASE: optique
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
     ports:
       - 3306:3306
     volumes:
       - db_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password  # Ajout pour éviter certains problèmes de compatibilité
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  mailer:
+    image: mailhog/mailhog
+    container_name: symfony-mailer
+    ports:
+      - 8025:8025  # Port accessible pour l'interface Web de MailHog
+      - 1025:1025  # Port utilisé pour envoyer les mails via MailHog
+    environment:
+      - MH_STORAGE=maildir
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: symfony-phpmyadmin
+    environment:
+      PMA_HOST: db  # Doit correspondre au nom du service MySQL
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - 8081:80
+    depends_on:
+      - db
 
 volumes:
   db_data:
+
